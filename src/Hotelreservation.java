@@ -2,121 +2,141 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class Hotelreservation {
-    static String name;
-    static String contactInfo;
-
+public class HotelReservation {
+    static class Reservation {
+        String name;
+        String contactInfo;
+        
+        // Constructor for reservation information
+        Reservation(String name, String contactInfo) {
+            this.name = name;
+            this.contactInfo = contactInfo;
+        }
+        
+        // Overriding toString method to show reservation details
+        @Override
+        public String toString() {
+            return "Name: " + name + ", Contact: " + contactInfo;
+        }
+    }
+    
     public static void main(String[] args) {
-        // String myRooms[] = { ", Room 102 - Occupied, Room 103 - Vacant, Room 104 -
-        // Vacant" };
+        // HashMap to store room availability and reservation details
+        HashMap<String, Reservation> myRooms = new HashMap<>();
+        myRooms.put("101", null); // Null means the room is vacant
+        myRooms.put("102", new Reservation("John Doe", "555-0123")); // Preoccupied by someone else
+        myRooms.put("103", null);
+        myRooms.put("104", null);
 
-        System.out.println("-----------------------------------------");
-        System.out.println("WELCOME TO THE HOTEL RESERVATION SYSTEM!");
-        System.out.println("-----------------------------------------");
         Scanner scanner = new Scanner(System.in);
-
-        HashMap<String, String> myRooms = new HashMap<>();
-        myRooms.put("101", "Vacant");
-        myRooms.put("102", "Occupied");
-        myRooms.put("103", "Vacant");
-        myRooms.put("104", "Vacant");
+        
+        // Main application loop
         while (true) {
-
-            System.out.println("1.View Available Rooms\n2.Reserve a Room\n3.View Reservations\n4.Check Out\n5.Exit");
+            System.out.println("\n1. View Available Rooms\n2. Reserve a Room\n3. View Reservations\n4. Check Out\n5. Exit");
             int input = scanner.nextInt();
-            scanner.nextLine();
+            scanner.nextLine();  // Consuming the newline
 
             switch (input) {
                 case 1:
                     viewAvailableRooms(myRooms);
                     break;
                 case 2:
-                    reserveRooms(scanner, myRooms);
+                    reserveRoom(scanner, myRooms);
                     break;
                 case 3:
-                    viewReservations(scanner, myRooms);
+                    viewReservation(scanner, myRooms);
                     break;
                 case 4:
-                    checkOutMenu(scanner, myRooms);
+                    checkOut(scanner, myRooms);
                     break;
                 case 5:
                     System.out.println("Exiting...");
-                    break;
+                    return; // Exit the application
                 default:
-                    System.out.println("Invalid Option, Please try again");
-
+                    System.out.println("Invalid Option, Please try again.");
             }
-
         }
     }
-
-    private static void viewAvailableRooms(HashMap<String, String> myRooms) {
-        System.out.println("AVAILABLE ROOMS");
-        myRooms.forEach((key, value) -> System.out.println("Room " + key + " Status: " + value));
+    
+    // View all rooms and their availability
+    private static void viewAvailableRooms(HashMap<String, Reservation> myRooms) {
+        System.out.println("ROOM AVAILABILITY:");
+        myRooms.forEach((roomNumber, reservation) -> {
+            if (reservation == null) {
+                System.out.println("Room " + roomNumber + " is Vacant");
+            } else {
+                System.out.println("Room " + roomNumber + " is Occupied by " + reservation.name);
+            }
+        });
     }
 
-    private static void reserveRooms(Scanner scanner, HashMap<String, String> myRooms) {
-        System.out.print("Enter Your name: ");
-        // scanner.nextLine();
-        name = scanner.nextLine();
-        System.out.print("Enter Your contact information: ");
-        contactInfo = scanner.nextLine();
+    // Reserve a room if it's available
+    private static void reserveRoom(Scanner scanner, HashMap<String, Reservation> myRooms) {
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter your contact information: ");
+        String contactInfo = scanner.nextLine();
         System.out.print("Enter the room number you want to reserve: ");
-        String reserve = scanner.nextLine();
-        if (myRooms.containsKey(reserve)) {
-            if (myRooms.get(reserve).equals("Vacant")) {
-                myRooms.put(reserve, "Occupied");
-                System.out.println("Room " + reserve + " Reserved Successfully");
+        String roomNumber = scanner.nextLine();
+
+        // Check if the room exists
+        if (myRooms.containsKey(roomNumber)) {
+            // If room is vacant, proceed with reservation
+            if (myRooms.get(roomNumber) == null) {
+                myRooms.put(roomNumber, new Reservation(name, contactInfo)); // Make the reservation
+                System.out.println("Room " + roomNumber + " reserved successfully for " + name);
             } else {
-                System.out.println("Room " + reserve + " is already occupied");
+                System.out.println("Room " + roomNumber + " is already occupied by " + myRooms.get(roomNumber).name);
             }
         } else {
-            System.out.println("Invalid Room number");
+            System.out.println("Invalid Room number. Please enter a valid room number.");
         }
-
     }
 
-    private static void viewReservations(Scanner scanner, HashMap<String, String> myRooms) {
-        System.out.println("VIEW RESERVATIOINS");
-        System.out.print("ENTER NAME: ");
-        String name1 = scanner.nextLine();
-        System.out.print("ENTER CONTACT INFO: ");
-        String contactInfo1 = scanner.nextLine();
+    // View reservations by searching for a person's name and contact
+    private static void viewReservation(Scanner scanner, HashMap<String, Reservation> myRooms) {
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter your contact information: ");
+        String contactInfo = scanner.nextLine();
 
-        boolean hasReservation = false;
-        for (Map.Entry<String, String> entry : myRooms.entrySet()) {
-            if (entry.getValue().equals("Occupied") && !entry.getKey().equals("102")) {
-                if (name1.equals(name) && contactInfo1.equals(contactInfo)) {
-                    System.out.println("Room " + entry.getKey() + " is reserved for you");
-                    hasReservation = true;
-                }
+        boolean foundReservation = false;
+        // Search through all rooms for a matching reservation
+        for (Map.Entry<String, Reservation> entry : myRooms.entrySet()) {
+            Reservation reservation = entry.getValue();
+            if (reservation != null && reservation.name.equals(name) && reservation.contactInfo.equals(contactInfo)) {
+                System.out.println("You have reserved Room " + entry.getKey());
+                foundReservation = true;
+                break;
             }
         }
-        if (!hasReservation) {
-            System.out.println("No reservation for you");
-        }
 
+        if (!foundReservation) {
+            System.out.println("No reservation found for " + name);
+        }
     }
 
-    private static void checkOutMenu(Scanner scanner, HashMap<String, String> myRooms) {
-        System.out.println("CHECK OUT");
-        System.out.print("ENTER NAME: ");
-        String checkOutName = scanner.nextLine();
-        System.out.print("ENTER CONTACT INFO: ");
-        String checkOutInfo = scanner.nextLine();
+    // Check out and make the room vacant again
+    private static void checkOut(Scanner scanner, HashMap<String, Reservation> myRooms) {
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter your contact information: ");
+        String contactInfo = scanner.nextLine();
 
-        boolean hasCheckout = false;
-        for (Map.Entry<String, String> entry : myRooms.entrySet()) {
-            if (entry.getValue().equals("Occupied")) {
-                if (checkOutName.equals(name) && checkOutInfo.equals(contactInfo) && !entry.getKey().equals("102")) {
-                    System.out.println("Room " + entry.getKey() + " checked out sucessfully");
-                    hasCheckout = true;
-                }
+        boolean foundCheckout = false;
+        // Search for the reservation and clear it
+        for (Map.Entry<String, Reservation> entry : myRooms.entrySet()) {
+            Reservation reservation = entry.getValue();
+            if (reservation != null && reservation.name.equals(name) && reservation.contactInfo.equals(contactInfo)) {
+                myRooms.put(entry.getKey(), null); // Set the room to vacant
+                System.out.println("You have successfully checked out from Room " + entry.getKey());
+                foundCheckout = true;
+                break;
             }
         }
-        if (!hasCheckout) {
-            System.out.println("No reservation for you to checkout");
-        }
 
+        if (!foundCheckout) {
+            System.out.println("No reservation found for " + name + ". Cannot check out.");
+        }
     }
 }
